@@ -25,8 +25,8 @@ public class Knife4jConfiguration {
     public Docket defaultApi2() {
         return new Docket(DocumentationType.SWAGGER_2)
                 .apiInfo(new ApiInfoBuilder()
-                        .title("springboot-init")
-                        .description("springboot-init")
+                        .title("yuwork-backend")
+                        .description("yuwork-backend")
                         .termsOfServiceUrl("https://github.com/liyupi")
                         .contact(new Contact("yupi", "https://github.com/liyupi", "592789970@qq.com"))
                         .version("1.0")
