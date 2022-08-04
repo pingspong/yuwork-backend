@@ -31,7 +31,7 @@ public class WorkController {
     @PostMapping("/create")
     public BaseResponse<Long> createWork(@RequestBody Work work) {
         if (work == null) {
-            throw new BusinessException(ErrorCode.NULL_ERROR);
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
         }
         if (StringUtils.isAnyBlank(work.getName(), work.getDescription())) {
             throw new BusinessException(ErrorCode.PARAMS_ERROR);
@@ -43,6 +43,25 @@ public class WorkController {
         return ResultUtils.success(work.getId());
     }
 
+    @PostMapping("/update")
+    public BaseResponse<Boolean> updateWork(@RequestBody Work work) {
+        if (work == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        // todo 权限校验
+        // 参数校验
+        if (work.getId() == null) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        String name = work.getName();
+        final int MAX_NAME_LENGTH = 100;
+        if (StringUtils.isNotBlank(name) && name.length() > MAX_NAME_LENGTH) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        boolean b = workService.updateById(work);
+        return ResultUtils.success(b);
+    }
+
 
     @PostMapping("/list")
     public BaseResponse<Page<Work>> listWork(@RequestBody WorkRequest workRequest) {
@@ -51,7 +70,13 @@ public class WorkController {
         }
         Work work = workRequest.getWork();
         PageRequest pageRequest = workRequest.getPageRequest();
-        QueryWrapper<Work> queryWrapper = new QueryWrapper<>(work);
+        QueryWrapper<Work> queryWrapper = new QueryWrapper<>();
+        if (work != null) {
+            String name = work.getName();
+            if (StringUtils.isNotBlank(name)) {
+                queryWrapper.like("name", name);
+            }
+        }
         Page<Work> pageData = workService.page(new Page<>(pageRequest.getCurrent(), pageRequest.getSize()), queryWrapper);
         return ResultUtils.success(pageData);
     }
