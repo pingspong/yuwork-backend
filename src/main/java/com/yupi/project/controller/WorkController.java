@@ -8,7 +8,8 @@ import com.yupi.project.common.PageRequest;
 import com.yupi.project.common.ResultUtils;
 import com.yupi.project.exception.BusinessException;
 import com.yupi.project.model.entity.Work;
-import com.yupi.project.model.request.WorkRequest;
+import com.yupi.project.model.request.WorkDeleteRequest;
+import com.yupi.project.model.request.WorkQueryRequest;
 import com.yupi.project.service.WorkService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -62,22 +63,32 @@ public class WorkController {
         return ResultUtils.success(b);
     }
 
-
     @PostMapping("/list")
-    public BaseResponse<Page<Work>> listWork(@RequestBody WorkRequest workRequest) {
-        if (workRequest == null) {
+    public BaseResponse<Page<Work>> listWork(@RequestBody WorkQueryRequest workQueryRequest) {
+        if (workQueryRequest == null) {
             throw new BusinessException(ErrorCode.NULL_ERROR);
         }
-        Work work = workRequest.getWork();
-        PageRequest pageRequest = workRequest.getPageRequest();
+        String name = workQueryRequest.getName();
+        String description = workQueryRequest.getDescription();
+        long current = workQueryRequest.getCurrent();
+        long size = workQueryRequest.getSize();
         QueryWrapper<Work> queryWrapper = new QueryWrapper<>();
-        if (work != null) {
-            String name = work.getName();
-            if (StringUtils.isNotBlank(name)) {
-                queryWrapper.like("name", name);
-            }
+        if (StringUtils.isNotBlank(name)) {
+            queryWrapper.like("name", name);
         }
-        Page<Work> pageData = workService.page(new Page<>(pageRequest.getCurrent(), pageRequest.getSize()), queryWrapper);
+        if (StringUtils.isNotBlank(description)) {
+            queryWrapper.like("description", description);
+        }
+        Page<Work> pageData = workService.page(new Page<>(current, size), queryWrapper);
         return ResultUtils.success(pageData);
+    }
+
+    @PostMapping("/delete")
+    public BaseResponse<Boolean> deleteWork(@RequestBody WorkDeleteRequest deleteRequest) {
+        if (deleteRequest == null || deleteRequest.getId() <= 0) {
+            throw new BusinessException(ErrorCode.PARAMS_ERROR);
+        }
+        boolean b = workService.removeById(deleteRequest.getId());
+        return ResultUtils.success(b);
     }
 }
